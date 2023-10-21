@@ -12,7 +12,7 @@ public class Hero : MonoBehaviour {
     public float pitchMult = 30;
     public float gameRestartDelay = 2f;
     public GameObject projectilePrefab;
-    public float projectileSpeed = 40;
+    public float projectileSpeed = 80;
     public Weapon[] weapons;
 
     [Header("Set Dynamically")]
@@ -27,7 +27,7 @@ public class Hero : MonoBehaviour {
     // Create a WeaponFireDelegate field named fireDelegate.
     public WeaponFireDelegate fireDelegate;
 
-	void Start()
+    void Start()
     {
         if (S == null)
         {
@@ -43,9 +43,9 @@ public class Hero : MonoBehaviour {
         ClearWeapons();
         weapons[0].SetType(WeaponType.blaster);
     }
-	
-	// Update is called once per frame
-	void Update()
+
+    // Update is called once per frame
+    void Update()
     {
         // Pull in information from the Input class
         float xAxis = Input.GetAxis("Horizontal");
@@ -82,7 +82,7 @@ public class Hero : MonoBehaviour {
         }
         lastTriggerGo = go;
 
-        if(go.tag == "Enemy")
+        if (go.tag == "Enemy")
         {
             shieldLevel--;
             Destroy(go);
@@ -92,15 +92,19 @@ public class Hero : MonoBehaviour {
             // If the shield was triggered by a PowerUp
             AbsorbPowerUp(go);
         }
+        else if (go.tag == "AntiPowerUp")
+        {
+            AbsorbAntiPowerUp(go);
+        }
         else
         {
             print("Triggered by non-Enemy: " + go.name);
         }
     }
 
-    public void AbsorbPowerUp(GameObject go)
+    public void AbsorbAntiPowerUp(GameObject go)
     {
-        PowerUp pu = go.GetComponent<PowerUp>();
+        AntiPowerUp pu = go.GetComponent<AntiPowerUp>();
         switch (pu.type)
         {
             case WeaponType.shield:
@@ -108,10 +112,10 @@ public class Hero : MonoBehaviour {
                 break;
 
             default:
-                if(pu.type == weapons[0].type)
+                if (pu.type == weapons[0].type)
                 {
                     Weapon w = GetEmptyWeaponSlot();
-                    if(w != null)
+                    if (w != null)
                     {
                         // Set it to pu.type
                         w.SetType(pu.type);
@@ -126,6 +130,38 @@ public class Hero : MonoBehaviour {
                 break;
         }
         pu.AbsorbedBy(gameObject);
+
+    }
+
+    public void AbsorbPowerUp(GameObject go)
+    {
+        PowerUp pu = go.GetComponent<PowerUp>();
+        switch (pu.type)
+        {
+            case WeaponType.shield:
+                shieldLevel++;
+                break;
+
+            default:
+                if (pu.type == weapons[0].type)
+                {
+                    Weapon w = GetEmptyWeaponSlot();
+                    if (w != null)
+                    {
+                        // Set it to pu.type
+                        w.SetType(pu.type);
+                    }
+                }
+                else
+                {
+                    //If this is a different weapon type
+                    ClearWeapons();
+                    weapons[0].SetType(pu.type);
+                }
+                break;
+        }
+        pu.AbsorbedBy(gameObject);
+
     }
 
     public float shieldLevel
